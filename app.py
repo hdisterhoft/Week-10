@@ -12,8 +12,15 @@ app = Flask(__name__)
 import prcp_data
 import stations
 tobs = [(85.0, 54.0, 71.66378066378067)]
-start = [(62.0, 69.57142857142857, 74.0)]
-end = [(62.0, 69.88636363636364, 80.0)]
+
+engine = create_engine("sqlite:///Resources/hawaii.sqlite")
+# reflect an existing database into a new model
+Base = automap_base()
+# reflect the tables
+Base.prepare(engine, reflect=True)
+Measurement = Base.classes.measurement
+Station = Base.classes.station
+session = Session(engine)
 
 @app.route("/api/v1.0/precipitation")
 def something():
@@ -28,12 +35,16 @@ def tob():
     return jsonify(tobs)
 
 @app.route("/api/v1.0/<start>")
-def starts():
-    return jsonify(start)
+def starts(start):
+    starts_results = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
+        filter(Measurement.date >= start).all()
+    return jsonify(starts_results)
 
 @app.route("/api/v1.0/<start>/<end>")
-def ends(): 
-    return jsonify(end)
+def ends(start,end): 
+    start_end = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
+        filter(Measurement.date >= start).filter(Measurement.date <= end).all()
+    return jsonify(start_end)
 
 if __name__ == '__main__':
     app.run(debug=True)
