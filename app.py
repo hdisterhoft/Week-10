@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 import prcp_data
 import stations
-tobs = [(85.0, 54.0, 71.66378066378067)]
+
 
 engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 # reflect an existing database into a new model
@@ -32,7 +32,8 @@ def station():
 
 @app.route("/api/v1.0/tobs")
 def tob():
-    return jsonify(tobs)
+    tobss = session.query(Measurement.tobs).filter(Measurement.date >= "2016-06-23").all()
+    return jsonify(tobss)
 
 @app.route("/api/v1.0/<start>")
 def starts(start):
